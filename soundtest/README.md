@@ -1,7 +1,5 @@
 # Sonic 1 Sound Test
 
-Current implementation: **V19**.
-
 ## Source
 
 - `src/Sound Test.asm` — Sound Test game mode and live channel renderer.
