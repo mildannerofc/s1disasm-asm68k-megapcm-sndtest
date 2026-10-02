@@ -5,6 +5,8 @@ In this repository, it targets ASM68K and also contain optimized decompressions 
 
 This screen is also exclusive to this repository, you might cleanup some stuff if you want to include it in your ROM hack.
 
+**Note:** There's some known issues that there are some songs notes will be not displayed correctly with this sound test.
+
 ## Credits
 - Mildanner - Art, code adjustments
 - Vladikcomper - Mega PCM 2.1 + Kosinski and Nemesis optimized decompression
