@@ -1,35 +1,12 @@
-# Sonic the Hedgehog (16-bit) Disassembly
+<img width="640" height="448" alt="image" src="https://github.com/user-attachments/assets/5aa3368e-bc6d-4926-80fe-222519b1b93c" />
 
-For an overview of the folder structure, [refer to this page](https://info.sonicretro.org/SCHG_How-to:Disassembly_Folder_Structure#Sonic_1).
+## Sonic 1 - Simple Plain Text Sound Test
+In this repository, it targets ASM68K and also contain optimized decompressions to load the screen faster.
 
-Also See: http://info.sonicretro.org/Disassemblies
+This screen is also exclusive to this repository, you might cleanup some stuff if you want to include it in your ROM hack.
 
-# DISCLAIMER
-Any and all content presented in this repository is presented for informational and educational purposes only.
-Commercial usage is expressly prohibited. Sonic Retro claims no ownership of any code in these repositories.
-You assume any and all responsibility for using this content responsibly. Sonic Retro claims no responsibility or warranty.
-
-## Sound Test
-
-The Sound Test source and its dedicated data/docs/tools are grouped under `soundtest/`.
-Start with `soundtest/docs/SOUND_TEST_V15_GUIDE.md` for the current ROM-hacking instructions.
-
-## Sound Test V20 configuration
-
-User-editable Sound Test constants are now in:
-
-`soundtest/config/Sound Test Config.asm`
-
-Playable music/SFX entries are in:
-
-`soundtest/data/entries/Sound Test Entries.asm`
-
-The table count is derived from its actual records, so adding a music or SFX
-record no longer requires changing a hard-coded count.
-
-MegaPCM 2.1 integration is enabled by default through `MegaPCM2_Enable = 1` in
-`sonic.asm`. `build.bat` checks for the official ASM68K MegaPCM files and runs
-the bundled setup script automatically when they are missing.
-
-
-V26 MegaPCM note: this tree follows the official ASM68K MegaPCM 2.x Sonic 1 integration. Use only the official `asm68k` bundle; do not mix AS files.
+## Credits
+- Mildanner - Art, code adjustments
+- Vladikcomper - Mega PCM 2.1 + Kosinski and Nemesis optimized decompression
+- Malachi - Enigma optimized decompression
+- MarkeyJester - Improved palette fade routines
