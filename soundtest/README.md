@@ -24,8 +24,3 @@ SoundTest_SelectionStride: equ 16
 ## Input
 
 `LEFT/RIGHT` select, `A/B` jump by 16 entries, `C` plays, `START` exits.
-
-## Documentation
-
-See `docs/SOUND_TEST_V19_GUIDE.md` and `docs/SOUND_TEST_SFX_LIST.md`.
-MegaPCM integration notes are in `../../megapcm2/`.
