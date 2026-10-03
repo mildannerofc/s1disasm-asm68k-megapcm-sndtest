@@ -627,7 +627,7 @@ SoundTest_PSGFreqToIndex:
 		moveq	#0,d0
 		move.w	d1,d0
 		beq.s	.invalid
-		moveq	#0,d2			; d2 = octave counter
+		moveq	#1,d2			; d2 = octave counter
 .octave:
 		cmpi.w	#440,d0			; bring divider into the reference octave
 		bhs.s	.octdone
