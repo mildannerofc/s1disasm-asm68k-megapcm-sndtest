@@ -570,7 +570,7 @@ SoundTest_DrawRest:
 ; ---------------------------------------------------------------------------
 ; Format and conversion text utilities
 ; ---------------------------------------------------------------------------
-SoundTest_NoteSemitoneAdjust: equ -1
+SoundTest_NoteSemitoneAdjust: equ $0
 
 SoundTest_FormatFMNote:
 		moveq	#0,d0
