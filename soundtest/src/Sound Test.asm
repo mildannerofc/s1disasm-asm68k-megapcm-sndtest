@@ -570,7 +570,7 @@ SoundTest_DrawRest:
 ; ---------------------------------------------------------------------------
 ; Format and conversion text utilities
 ; ---------------------------------------------------------------------------
-SoundTest_NoteSemitoneAdjust: equ $0
+SoundTest_NoteSemitoneAdjust: equ -1
 
 SoundTest_FormatFMNote:
 		moveq	#0,d0
@@ -599,7 +599,7 @@ SoundTest_FormatFMNote:
 SoundTest_FormatPSGNote:
 		moveq	#0,d0
 		move.w	d1,d0
-		addi.w	#SoundTest_NoteSemitoneAdjust,d0
+		addi.w	#0,d0
 		bpl.s	.psg_index_ok
 		moveq	#0,d0
 .psg_index_ok:
