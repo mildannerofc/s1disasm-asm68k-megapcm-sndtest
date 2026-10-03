@@ -1,4 +1,4 @@
-<img width="640" height="448" alt="image" src="https://github.com/user-attachments/assets/5aa3368e-bc6d-4926-80fe-222519b1b93c" />
+<img width="640" height="448" alt="image" src="https://github.com/user-attachments/assets/aa3c6628-be51-483f-b8aa-c640a8a01fa1" />
 
 ## Sonic 1 - Simple Plain Text Sound Test
 In this repository, it targets ASM68K and also contain optimized decompressions to load the screen faster.
