@@ -103,8 +103,7 @@ SoundTest_FM5Y:              equ SoundTest_FM1Y+(SoundTest_ChannelStepY*4)
 SoundTest_FM6Y:              equ SoundTest_FM1Y+(SoundTest_ChannelStepY*5)
 SoundTest_PSG1Y:             equ SoundTest_FM1Y+(SoundTest_ChannelStepY*6)
 SoundTest_PSG2Y:             equ SoundTest_FM1Y+(SoundTest_ChannelStepY*7)
-SoundTest_PSG3Y:             equ SoundTest_FM1Y+(SoundTest_ChannelStepY*8)
-SoundTest_NoiseY:            equ SoundTest_FM1Y+(SoundTest_ChannelStepY*9)
+SoundTest_NoiseY:            equ SoundTest_FM1Y+(SoundTest_ChannelStepY*8)
 SoundTest_FMFrequencyCount: equ (FMFrequencies_End-FMFrequencies)/2
 SoundTest_PSGFrequencyCount:equ (PSGFrequencies_End-PSGFrequencies)/2
 SoundTest_PaletteLine:       equ 0

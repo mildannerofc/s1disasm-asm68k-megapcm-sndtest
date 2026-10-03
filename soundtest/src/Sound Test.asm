@@ -199,10 +199,6 @@ SoundTest_DrawStatic:
 		moveq	#SoundTest_ChannelX,d0
 		moveq	#SoundTest_PSG2Y,d1
 		bsr.w	SoundTest_DrawText
-		lea	SoundTest_ChannelPSG3(pc),a0
-		moveq	#SoundTest_ChannelX,d0
-		moveq	#SoundTest_PSG3Y,d1
-		bsr.w	SoundTest_DrawText
 		lea	SoundTest_ChannelNoise(pc),a0
 		moveq	#SoundTest_ChannelX,d0
 		moveq	#SoundTest_NoiseY,d1
@@ -235,8 +231,6 @@ SoundTest_DrawStatic:
 		moveq	#SoundTest_PSG1Y,d1
 		bsr.w	SoundTest_DrawIcon
 		moveq	#SoundTest_PSG2Y,d1
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_PSG3Y,d1
 		bsr.w	SoundTest_DrawIcon
 		moveq	#SoundTest_NoiseY,d1
 		bsr.w	SoundTest_DrawIcon
@@ -365,9 +359,6 @@ SoundTest_UpdateChannels:
 		bsr.w	SoundTest_DrawPSGTrack
 		lea	SMPS_RAM.v_music_psg2_track(a6),a0
 		moveq	#22,d0
-		bsr.w	SoundTest_DrawPSGTrack
-		lea	SMPS_RAM.v_music_psg3_track(a6),a0
-		moveq	#24,d0
 		bsr.w	SoundTest_DrawPSGTrack
 		bsr.w	SoundTest_DrawNoise
 		rts
@@ -518,7 +509,7 @@ SoundTest_DrawPSGTrack:
 SoundTest_DrawNoise:
 		lea	(v_snddriver_ram).w,a6
 		lea	SMPS_RAM.v_music_psg3_track(a6),a0
-		moveq	#26,d5
+		moveq	#24,d5
 		btst	#7,SMPS_Track.PlaybackControl(a0)
 		beq.w	SoundTest_DrawRestAtRow
 		btst	#1,SMPS_Track.PlaybackControl(a0)
@@ -849,8 +840,7 @@ SoundTest_ChannelFM6:   dc.b "FM 6",0
 SoundTest_ChannelDAC:   dc.b "DAC ",0
 SoundTest_ChannelPSG1:  dc.b "PSG 1",0
 SoundTest_ChannelPSG2:  dc.b "PSG 2",0
-SoundTest_ChannelPSG3:  dc.b "PSG 3",0
-SoundTest_ChannelNoise: dc.b "NOISE",0
+SoundTest_ChannelNoise: dc.b "PSG 3",0
 SoundTest_BlankSelectionHeader: dc.b "      ",0
 SoundTest_BlankMusic:   dc.b "                         ",0
 SoundTest_Rest:         dc.b "---",0
