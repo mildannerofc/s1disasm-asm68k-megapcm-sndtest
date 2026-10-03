@@ -491,19 +491,13 @@ SoundTest_DrawPSGTrack:
 		cmpi.w	#-1,d1
 		beq.w	SoundTest_DrawRest
 		movea.l	a0,a2
-		lea	(PSGFrequencies).l,a1
-		moveq	#0,d2
-		moveq	#SoundTest_PSGFrequencyCount-1,d3
-.psgfind:
-		cmp.w	(a1)+,d1
-		beq.s	.psgfound
-		addq.w	#1,d2
-		dbf	d3,.psgfind
+		bsr.w	SoundTest_PSGFreqToIndex
+		tst.w	d1
+		bpl.s	.psgfound
 		movea.l	a2,a0
 		move.w	d5,d0
 		bra.w	SoundTest_DrawRest
 .psgfound:
-		move.w	d2,d1
 		bsr.w	SoundTest_FormatPSGNote
 		move.w	d5,d1
 		move.w	#Tile_Pal1|Tile_Prio,d2
@@ -619,6 +613,58 @@ SoundTest_FormatPSGNote:
 		move.b	d0,(a0)+
 		clr.b	(a0)
 		rts
+
+; ---------------------------------------------------------------------------
+; Converts a PSG tone divider into a semitone index (0 = lowest C).
+; The note is calculated from the frequency value itself, so it no longer
+; depends on how the PSGFrequencies table is ordered.
+; input:  d1.w = PSG divider (SMPS_Track.Freq)
+; output: d1.w = octave*12 + note (C=0 ... B=11), or -1 if there is no tone
+; uses:   d0-d4/a1 (d5 is preserved)
+; ---------------------------------------------------------------------------
+SoundTest_PSGFreqToIndex:
+		move.l	d5,-(sp)
+		moveq	#0,d0
+		move.w	d1,d0
+		beq.s	.invalid
+		moveq	#0,d2			; d2 = octave counter
+.octave:
+		cmpi.w	#440,d0			; bring divider into the reference octave
+		bhs.s	.octdone
+		add.w	d0,d0			; divider*2 = one octave lower
+		addq.w	#1,d2
+		bra.s	.octave
+.octdone:
+		lea	SoundTest_PSGRefDividers(pc),a1
+		moveq	#0,d1			; d1 = best note
+		move.w	#$7FFF,d4		; d4 = best distance
+		moveq	#0,d3			; d3 = current note
+.nearest:
+		move.w	(a1)+,d5
+		sub.w	d0,d5
+		bpl.s	.abs
+		neg.w	d5
+.abs:
+		cmp.w	d4,d5
+		bhs.s	.notbetter
+		move.w	d5,d4
+		move.w	d3,d1
+.notbetter:
+		addq.w	#1,d3
+		cmpi.w	#12,d3
+		blo.s	.nearest
+		mulu.w	#12,d2
+		add.w	d2,d1			; index = octave*12 + note
+		move.l	(sp)+,d5
+		rts
+.invalid:
+		moveq	#-1,d1
+		move.l	(sp)+,d5
+		rts
+
+; PSG dividers for C, C#, D, D#, E, F, F#, G, G#, A, A#, B (one octave)
+SoundTest_PSGRefDividers:
+		dc.w	$356,$326,$2F9,$2CE,$2A5,$280,$25C,$23A,$21A,$1FB,$1DF,$1C4
 
 SoundTest_FormatNoiseNote:
 		lea	(v_soundtest_textbuf).w,a0
