@@ -8,7 +8,12 @@ This screen is also exclusive to this repository, you might cleanup some stuff i
 **Note:** There's some known issues that there are some songs notes will be not displayed correctly with this sound test.
 
 ## Credits
+- Sonic Retro - Original Sonic 1 disassembly
 - Mildanner - Art, code adjustments
+## Special thanks
+- Esrael - Inspiration on his Sonic Delta Sound Test
 - Vladikcomper - Mega PCM 2.1 + Kosinski and Nemesis optimized decompression
 - Malachi - Enigma optimized decompression
 - MarkeyJester - Improved palette fade routines
+## AI disclosure
+This concept of a minimal plain text that also makes it into a sound test is used with help of ChatGPT, the assets are still on my own property and for testing purpose.
