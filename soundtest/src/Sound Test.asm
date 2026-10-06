@@ -25,6 +25,16 @@ GM_SoundTest:
 		clr.b	(f_wtr_state).w
 		bsr.w	ClearScreen
 
+		; Clear the sprite attribute buffer as well.
+		; The Sound Test uses no sprites, so this prevents sprites left by the
+		; previous game mode from appearing when the screen is opened.
+		lea	(v_spritetablebuffer).w,a1
+		moveq	#0,d0
+		move.w	#($280/4)-1,d7
+.clear_sprite_buffer:
+		move.l	d0,(a1)+
+		dbf	d7,.clear_sprite_buffer
+
 		; Load the Sound Test palette through the project's palette pointer table.
 		clearRAM	v_palette,v_palette_end
 		clearRAM	v_palette_fading,v_palette_fading_end
@@ -204,36 +214,6 @@ SoundTest_DrawStatic:
 		moveq	#SoundTest_NoiseY,d1
 		bsr.w	SoundTest_DrawText
 
-		move.w	#Tile_Pal1|Tile_Prio,d2
-		moveq	#SoundTest_IconX,d0
-		moveq	#SoundTest_MusicLabelY,d1
-		moveq	#0,d3
-		bsr.w	SoundTest_DrawIcon
-		moveq	#34,d0
-		moveq	#SoundTest_MusicLabelY,d1
-		moveq	#2,d3
-		bsr.w	SoundTest_DrawIcon
-
-		moveq	#SoundTest_IconX,d0
-		moveq	#SoundTest_FM1Y,d1
-		moveq	#1,d3
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_FM2Y,d1
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_FM3Y,d1
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_FM4Y,d1
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_FM5Y,d1
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_FM6Y,d1
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_PSG1Y,d1
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_PSG2Y,d1
-		bsr.w	SoundTest_DrawIcon
-		moveq	#SoundTest_NoiseY,d1
-		bsr.w	SoundTest_DrawIcon
 		rts
 
 SoundTest_DrawMusic:
