@@ -1,5 +1,9 @@
 @ECHO OFF
 
+rem =================================================================
+rem RELEASE BUILD
+rem =================================================================
+
 REM // Rename previously successful build if one existed.
 IF EXIST s1built.bin move /Y s1built.bin s1built.prev.bin > NUL
 
@@ -29,6 +33,30 @@ REM // Fix checksum (only if output was generated).
 if exist s1built.bin (
     "build_tools\fixheadr.exe" s1built.bin
 )
+
+
+rem =================================================================
+rem DEBUG BUILD
+rem =================================================================
+
+REM // Rename previously successful build if one existed.
+IF EXIST s1built.debug.bin move /Y s1built.debug.bin s1built.debug.prev.bin > NUL
+
+REM // Run the ASM68K assembly with Debug flag enabled.
+"build_tools\asm68k.exe" /k /m /p /e __DEBUG__=1 /o ae-,oz+,c+,l+,ws+ sonic.asm, s1built.debug.bin, , sonic.debug.lst >> sonic.log
+
+REM // Print redirected log output to console.
+type sonic.log
+
+REM // Fix checksum (only if output was generated).
+if exist s1built.debug.bin (
+    "build_tools\fixheadr.exe" s1built.debug.bin
+)
+
+
+rem =================================================================
+rem VERIFICAÇÃO DE ERROS
+rem =================================================================
 
 REM // If assembly produced warnings or errors, pause here so that the user can read them.
 findstr /i /c:"Warning :" /c:"Error :" sonic.log > NUL
