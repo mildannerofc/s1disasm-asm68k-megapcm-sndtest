@@ -34,10 +34,6 @@ ZeroOffsetOptimization = 0|AllOptimizations
 PaddingOptimization = 0|AllOptimizations
 ;	| If 1, removes about 3 KB of various superfluous padding
 
-MegaPCM2_Enable = 1
-;	| Mega PCM 2.1 / ASM68K integration is always active in this build.
-;	| This constant is informational only; the driver is not conditionally compiled.
-
 EnableSRAM = 0
 ;	| If 1, enable SRAM support
 BackupSRAM = 1
