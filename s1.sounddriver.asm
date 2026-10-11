@@ -139,6 +139,7 @@ SoundPriorities:
 
 ; sub_71B4C:
 UpdateMusic:
+
 .driverinput:
 		lea	(v_snddriver_ram&$FFFFFF).l,a6
 		clr.b	SMPS_RAM.f_voice_selector(a6)
@@ -237,55 +238,59 @@ UpdateMusic:
 .specfmdone:
 		adda.w	#SMPS_Track.len,a5
 		tst.b	SMPS_Track.PlaybackControl(a5)	; Is track playing
-		bpl.s	.specpsgdone			; Branch if not
+		bpl.s	Do			; Branch if not
 		jsr	PSGUpdateTrack(pc)
 ; loc_71C44:
-.specpsgdone:
-; End of function UpdateMusic
+Do:
+		
 		rts
+; End of function UpdateMusic
 ; ===========================================================================
 
 ; sub_71C4E: UpdateDAC:
 DACUpdateTrack:
 		subq.b	#1,SMPS_Track.DurationTimeout(a5)	; Has DAC sample timeout expired?
-		bne.s	.locret				; Return if not
+		bne.s	.locret					; Return if not
 		move.b	#$80,SMPS_RAM.f_updating_dac(a6)	; Set flag to indicate this is the DAC
 ;DACDoNext:
-		movea.l	SMPS_Track.DataPointer(a5),a4	; DAC track data pointer
+		movea.l	SMPS_Track.DataPointer(a5),a4		; DAC track data pointer
 ; loc_71C5E:
 .sampleloop:
 		moveq	#0,d5
 		move.b	(a4)+,d5	; Get next SMPS unit
-		cmpi.b	#$E0,d5	; Is it a coord. flag?
+		cmpi.b	#$E0,d5		; Is it a coord. flag?
 		blo.s	.notcoord	; Branch if not
 		jsr	CoordFlag(pc)
 		bra.s	.sampleloop
 ; ===========================================================================
+; loc_71C6E:
 .notcoord:
-		tst.b	d5	; Is it a sample?
-		bpl.s	.gotduration	; Branch if not (duration)
+		tst.b	d5				; Is it a sample?
+		bpl.s	.gotduration			; Branch if not (duration)
 		move.b	d5,SMPS_Track.SavedDAC(a5)	; Store new sample
-		move.b	(a4)+,d5	; Get another byte
-		bpl.s	.gotduration	; Branch if it is a duration
-		subq.w	#1,a4	; Put byte back
-		move.b	SMPS_Track.SavedDuration(a5),SMPS_Track.DurationTimeout(a5)	; Use last duration
+		move.b	(a4)+,d5			; Get another byte
+		bpl.s	.gotduration			; Branch if it is a duration
+		subq.w	#1,a4				; Put byte back
+		move.b	SMPS_Track.SavedDuration(a5),SMPS_Track.DurationTimeout(a5) ; Use last duration
 		bra.s	.gotsampleduration
 ; ===========================================================================
+; loc_71C84:
 .gotduration:
 		jsr	SetDuration(pc)
+; loc_71C88:
 .gotsampleduration:
-		move.l	a4,SMPS_Track.DataPointer(a5)	; Save pointer
+		move.l	a4,SMPS_Track.DataPointer(a5) 		; Save pointer
 		btst	#2,SMPS_Track.PlaybackControl(a5)	; Is track being overridden?
-		bne.s	.locret	; Return if yes
+		bne.s	.locret					; Return if yes
 		moveq	#0,d0
 		move.b	SMPS_Track.SavedDAC(a5),d0	; Get sample
-		cmpi.b	#$80,d0	; Is it a rest?
-		beq.s	.locret	; Return if yes
-		MPCM_play d0	; Send DAC sample to Mega PCM
+		cmpi.b	#$80,d0				; Is it a rest?
+		beq.s	.locret				; Return if yes
+		MPCM_play d0
+; locret_71CAA:
 .locret:
 		rts
-; End of function DACUpdateTrack
-
+; ===========================================================================
 
 ; sub_71CCA:
 FMUpdateTrack:
@@ -494,20 +499,24 @@ FMSetRest:
 
 ; ===========================================================================
 ; loc_71E50:
-PauseMusic:
-		bmi.s	.unpausemusic	; Branch if music is being unpaused
-		cmpi.b	#2,SMPS_RAM.f_pausemusic(a6)
-		beq.w	.unpausedallfm
-		move.b	#2,SMPS_RAM.f_pausemusic(a6)
-		moveq	#2,d3
-		move.b	#$B4,d0		; Command to set AMS/FMS/panning
-		moveq	#0,d1		; No panning, AMS or FMS
-; loc_71E6A:
-.killpanloop:
-		jsr	WriteFMI(pc)
-		jsr	WriteFMII(pc)
-		addq.b	#1,d0
-		dbf	d3,.killpanloop
+PauseMusic:		
+		bmi.s   .unpausemusic		   ; Branch if music is being unpaused
+		cmpi.b  #2,SMPS_RAM.f_pausemusic(a6)
+		beq.w   .done
+		move.b  #2,SMPS_RAM.f_pausemusic(a6)
+		moveq   #$FFFFFFB4,d0		   ; Command to set AMS/FMS/panning
+		moveq   #0,d1		           ; No panning, AMS or FMS
+		jsr     WriteFMI(pc)		    ; FM1
+		jsr     WriteFMII(pc)			   ; FM4
+		addq.b  #1,d0
+		jsr     WriteFMI(pc)			    ; FM2
+		jsr     WriteFMII(pc)		        ; FM5
+		addq.b  #1,d0
+		jsr     WriteFMI(pc)		        ; FM3
+		tst.b   SMPS_RAM.v_music_fm6_track(a6)	  ; is FM6 playing?
+		bpl.s   .notFM6		         ; if not, don't touch it, because FM6 is owned by Mega PCM then
+		jsr     WriteFMII(pc)                   ; FM6
+	.notFM6:
 
 		moveq	#2,d3
 		moveq	#$28,d0		; Key on/off register
@@ -519,15 +528,16 @@ PauseMusic:
 		jsr	WriteFMI(pc)
 		dbf	d3,.noteoffloop
 
+		MPCM_pause
 		jsr	PSGSilenceAll(pc)
-		rts
+		bra.w	Do
 ; ===========================================================================
 ; loc_71E94:
 .unpausemusic:
 		clr.b	SMPS_RAM.f_pausemusic(a6)
 		moveq	#SMPS_Track.len,d3
 		lea	SMPS_RAM.v_music_fmdac_tracks(a6),a5
-		moveq	#SMPS_MUSIC_FM_DAC_TRACK_COUNT-1,d4	; 6 FM + 1 DAC tracks
+		moveq	#6-1,d4	; 6 FM + 1 DAC tracks
 ; loc_71EA0:
 .bgmfmloop:
 		btst	#7,SMPS_Track.PlaybackControl(a5)	; Is track playing?
@@ -568,8 +578,8 @@ PauseMusic:
 		jsr	WriteFMIorII(pc)
 ; loc_71EFE:
 .unpausedallfm:
-		rts
-
+		MPCM_unpause
+.done:
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Subroutine to play a sound or music track
@@ -673,7 +683,19 @@ ptr_flgend
 ; ---------------------------------------------------------------------------
 ; Sound_E1: PlaySega:
 PlaySegaSound:
-		MPCM_play #dacSega.id
+                MPCM_play #dacSega.id
+                rts
+; loc_71FC0:
+.busyloop_outer:
+		move.w	#-1,d0
+; loc_71FC4:
+.busyloop:
+		nop	
+		dbf	d0,.busyloop
+
+		dbf	d1,.busyloop_outer
+
+		addq.w	#4,sp	; Tamper return value so we don't return to caller
 		rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -903,10 +925,7 @@ PSGInitBytes:	dc.b $80, $A0, $C0	; Specifically, these configure writes to the P
 Sound_PlaySFX:
 		tst.b	SMPS_RAM.f_1up_playing(a6)	; Is 1-up playing?
 		bne.w	.clear_sndprio			; Exit is it is
-;		tst.b	SMPS_RAM.v_fadeout_counter(a6)	; Is music being faded out?
-;		bne.w	.clear_sndprio			; Exit if it is
-;		tst.b	SMPS_RAM.f_fadein_flag(a6)	; Is music being faded in?
-;		bne.w	.clear_sndprio			; Exit if it is
+
 		cmpi.b	#sfx_Ring,d7			; is ring sound effect played?
 		bne.s	.sfx_notRing			; if not, branch
 		tst.b	SMPS_RAM.v_ring_speaker(a6)	; Is the ring sound playing on right speaker?
@@ -1044,10 +1063,6 @@ SFX_SFXChannelRAM:
 Sound_PlaySpecial:
 		tst.b	SMPS_RAM.f_1up_playing(a6)	; Is 1-up playing?
 		bne.w	.locret				; Return if so
-;		tst.b	SMPS_RAM.v_fadeout_counter(a6)	; Is music being faded out?
-;		bne.w	.locret				; Exit if it is
-;		tst.b	SMPS_RAM.f_fadein_flag(a6)	; Is music being faded in?
-;		bne.w	.locret				; Exit if it is
 		movea.l	(Go_SpecSoundIndex).l,a0
 		subi.b	#spec__First,d7			; Make it 0-based
 		lsl.w	#2,d7
@@ -1293,7 +1308,6 @@ FadeOutMusic:
 		jsr	StopSpecialSFX(pc)
 		move.b	#3,SMPS_RAM.v_fadeout_delay(a6)			; Set fadeout delay to 3
 		move.b	#$28,SMPS_RAM.v_fadeout_counter(a6)		; Set fadeout counter
-;		clr.b	SMPS_RAM.v_music_dac_track.PlaybackControl(a6)	; Stop DAC track
 		clr.b	SMPS_RAM.f_speedup(a6)				; Disable speed shoes tempo
 		rts
 ; ===========================================================================
@@ -1390,9 +1404,6 @@ FMSilenceAll:
 ; ---------------------------------------------------------------------------
 ; Sound_E4: StopSoundAndMusic:
 StopAllSound:
-;		moveq	#$2B,d0		; Enable/disable DAC
-;		move.b	#$80,d1		; Enable DAC
-;		jsr	WriteFMI(pc)
 		moveq	#$27,d0		; Timers, FM3/FM6 mode
 		moveq	#0,d1		; FM3/FM6 normal mode, disable timers
 		jsr	WriteFMI(pc)
@@ -1407,7 +1418,6 @@ StopAllSound:
 .clearramloop:
 		clr.l	(a0)+
 		dbf	d0,.clearramloop
-		
 		MPCM_stop
 		move.b	#$80,SMPS_RAM.v_sound_id(a6)	; set music to $80 (silence)
 		jsr	FMSilenceAll(pc)
@@ -1633,61 +1643,65 @@ locret_72714:
 ; ===========================================================================
 ; loc_72716:
 WriteFMIorIIMain:
-		btst	#2,SMPS_Track.PlaybackControl(a5)	; Is track being overridden by sfx?
-		bne.s	.locret				; Return if yes
-		bra.w	WriteFMIorII
+                btst    #2,SMPS_Track.PlaybackControl(a5); Is track being overriden by sfx?
+                bne.s   .locret                         ; Return if yes
+                bra.w   WriteFMIorII
 ; ===========================================================================
 ; locret_72720:
 .locret:
-		rts
+                rts
 
-; ||||||||||||||| S U B\tR O U T\tI N E |||||||||||||||||||||||||||||||||||||||
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
 ; sub_72722:
 WriteFMIorII:
-		move.b	SMPS_Track.VoiceControl(a5),d2
-		subq.b	#4,d2				; Is this bound for part I or II?
-		bcc.s	WriteFMIIPart			; If yes, branch
-		addq.b	#4,d2				; Add in voice control bits
-		add.b	d2,d0
+                move.b  SMPS_Track.VoiceControl(a5), d2
+                subq.b  #4, d2                          ; Is this bound for part I or II?
+                bcc.s   WriteFMIIPart                   ; If yes, branch
+                addq.b  #4, d2                          ; Add in voice control bits
+                add.b   d2, d0                          ;
+
 ; ---------------------------------------------------------------------------
 WriteFMI:
-		MPCM_stopZ80
-		MPCM_ensureYMWriteReady
-.waitLoop_FMI:	tst.b	(ym2612_a0).l		; is FM busy?
-		bmi.s	.waitLoop_FMI				; branch if yes
-		move.b	d0,(ym2612_a0).l
-		nop
-		move.b	d1,(ym2612_d0).l
-		nop
-		nop
-.waitLoop2_FMI:	tst.b	(ym2612_a0).l		; is FM busy?
-		bmi.s	.waitLoop2_FMI				; branch if yes
-		move.b	#$2A,(ym2612_a0).l		; restore DAC output for Mega PCM
-		MPCM_startZ80
-		rts
+                MPCM_stopZ80
+                MPCM_ensureYMWriteReady
+.waitLoop:      tst.b   (ym2612_a0).l           ; is FM busy?
+                bmi.s   .waitLoop               ; branch if yes
+                move.b  d0, (ym2612_a0).l
+                nop
+                move.b  d1, (ym2612_d0).l
+                nop
+                nop
+.waitLoop2:     tst.b   (ym2612_a0).l           ; is FM busy?
+                bmi.s   .waitLoop2              ; branch if yes
+                move.b  #$2A, (ym2612_a0).l     ; restore DAC output for Mega PCM
+                MPCM_startZ80
+                rts
 ; End of function WriteFMI
+
 ; ===========================================================================
 ; loc_7275A:
 WriteFMIIPart:
-		add.b	d2,d0				; Add in to destination register
+                add.b   d2,d0                   ; Add in to destination register
+
 ; ---------------------------------------------------------------------------
 WriteFMII:
-		MPCM_stopZ80
-		MPCM_ensureYMWriteReady
-.waitLoop_FMII:	tst.b	(ym2612_a0).l		; is FM busy?
-		bmi.s	.waitLoop_FMII				; branch if yes
-		move.b	d0,(ym2612_a1).l
-		nop
-		move.b	d1,(ym2612_d1).l
-		nop
-		nop
-.waitLoop2_FMII:	tst.b	(ym2612_a0).l		; is FM busy?
-		bmi.s	.waitLoop2_FMII				; branch if yes
-		move.b	#$2A,(ym2612_a0).l		; restore DAC output for Mega PCM
-		MPCM_startZ80
-		rts
+                MPCM_stopZ80
+                MPCM_ensureYMWriteReady
+.waitLoop:      tst.b   (ym2612_a0).l           ; is FM busy?
+                bmi.s   .waitLoop               ; branch if yes
+                move.b  d0, (ym2612_a1).l
+                nop
+                move.b  d1, (ym2612_d1).l
+                nop
+                nop
+.waitLoop2:     tst.b   (ym2612_a0).l           ; is FM busy?
+                bmi.s   .waitLoop2              ; branch if yes
+                move.b  #$2A, (ym2612_a0).l     ; restore DAC output for Mega PCM
+                MPCM_startZ80
+                rts
 ; End of function WriteFMII
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; FM Note Values: b-0 to a#8
@@ -1958,7 +1972,6 @@ PSGFrequencies:
 		dc.w  $6B,  $65,  $5F,  $5A,  $55,  $50,  $4B,  $47,  $43,  $40,  $3C,  $39
 		dc.w  $36,  $33,  $30,  $2D,  $2B,  $28,  $26,  $24,  $22,  $20,  $1F,  $1D
 		dc.w  $1B,  $1A,  $18,  $17,  $16,  $15,  $13,  $12,  $11,    0
-PSGFrequencies_End:
 ; ===========================================================================
 
 ; sub_72A5A:
@@ -2118,6 +2131,7 @@ cfFadeInToPrevious:
 		move.b	#$80,SMPS_RAM.f_fadein_flag(a6)		; Trigger fade-in
 		move.b	#$28,SMPS_RAM.v_fadein_counter(a6)	; Fade-in delay
 		clr.b	SMPS_RAM.f_1up_playing(a6)
+		
 		addq.w	#8,sp		; Tamper return value so we don't return to caller
 		rts
 ; ===========================================================================
@@ -2523,6 +2537,7 @@ cfOpF9:
 		move.b	#$F,d1		; Loaded with fixed value (max RR, 1TL)
 		bra.w	WriteFMI
 ; ===========================================================================
+
 ; ---------------------------------------------------------------------------
 ; SMPS2ASM - A collection of macros that make SMPS's bytecode human-readable.
 ; ---------------------------------------------------------------------------
