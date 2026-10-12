@@ -490,11 +490,23 @@ SoundTest_DrawNoise:
 		lea	(v_snddriver_ram).w,a6
 		lea	SMPS_RAM.v_music_psg3_track(a6),a0
 		moveq	#24,d5
+		cmpi.b	#$C0,SMPS_Track.VoiceControl(a0)
+		beq.s	.draw_psg3
+		cmpi.b	#$E0,SMPS_Track.VoiceControl(a0)
+		beq.s	.draw_noise
+		bra.w	SoundTest_DrawRestAtRow
+
+.draw_psg3:
+		; The original Sonic 1 SMPS driver uses $C0 for the tonal PSG 3
+		; channel. Reuse the normal PSG renderer with row offset 24.
+		moveq	#24,d0
+		bra.w	SoundTest_DrawPSGTrack
+
+.draw_noise:
+		; The same original-driver track is noise only when VoiceControl=$E0.
 		btst	#7,SMPS_Track.PlaybackControl(a0)
 		beq.w	SoundTest_DrawRestAtRow
 		btst	#1,SMPS_Track.PlaybackControl(a0)
-		bne.w	SoundTest_DrawRestAtRow
-		cmpi.b	#$E0,SMPS_Track.VoiceControl(a0)
 		bne.w	SoundTest_DrawRestAtRow
 
 		move.b	SMPS_Track.PSGNoise(a0),d1
